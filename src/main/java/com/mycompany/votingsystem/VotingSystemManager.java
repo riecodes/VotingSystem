@@ -50,6 +50,16 @@ public class VotingSystemManager {
 
     private void loadUsers() throws IOException {
         users.clear();
+        java.io.File file = new java.io.File(USERS_FILE);
+        if (!file.exists()) {
+            // Create file and add default admin
+            file.getParentFile().mkdirs(); // Ensure directory exists
+            List<String[]> data = new ArrayList<>();
+            String defaultAdminUser = "admin";
+            String defaultAdminPass = PasswordUtils.hashPassword("admin123");
+            data.add(new String[]{defaultAdminUser, defaultAdminPass, "ADMIN", ""});
+            CSVUtils.writeCSV(USERS_FILE, data);
+        }
         List<String[]> data = CSVUtils.readCSV(USERS_FILE);
         for (String[] row : data) {
             if (row.length >= 4) {
@@ -64,6 +74,14 @@ public class VotingSystemManager {
                     users.put(row[0], voter);
                 }
             }
+        }
+        // Ensure default admin exists (in case file is present but no admin)
+        boolean adminExists = users.values().stream().anyMatch(u -> u.getRole().equals("ADMIN"));
+        if (!adminExists) {
+            String defaultAdminUser = "admin";
+            String defaultAdminPass = PasswordUtils.hashPassword("admin123");
+            users.put(defaultAdminUser, new Admin(defaultAdminUser, defaultAdminPass));
+            saveUsers();
         }
     }
 
