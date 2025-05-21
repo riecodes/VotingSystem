@@ -1,0 +1,23 @@
+REGISTER,1,New voter registered
+LOGIN,1,User logged in successfully
+LOGOUT,1,User logged out
+LOGIN,admin,User logged in successfully
+LOGOUT,admin,User logged out
+LOGIN,admin,User logged in successfully
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,1,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN,admin,User logged in successfully
+LOGOUT,admin,User logged out
+LOGIN,admin,User logged in successfully
+LOGOUT,admin,User logged out
+LOGIN,admin,User logged in successfully
