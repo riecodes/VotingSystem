@@ -1,12 +1,12 @@
 package com.mycompany.votingsystem;
 
+import java.io.IOException;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-
-import java.io.IOException;
 
 /**
  * JavaFX App
@@ -17,8 +17,9 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("primary"), 640, 480);
+        scene = new Scene(loadFXML("login"), 640, 480);
         stage.setScene(scene);
+        stage.setTitle("Voting System");
         stage.show();
     }
 
@@ -32,6 +33,11 @@ public class App extends Application {
     }
 
     public static void main(String[] args) {
+        try {
+            VotingSystemManager.getInstance().loadAllData();
+        } catch (IOException e) {
+            System.err.println("Failed to load data: " + e.getMessage());
+        }
         launch();
     }
 

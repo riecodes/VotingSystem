@@ -3,6 +3,15 @@
 ## Project Overview
 This project involves designing and developing an interactive system or game application using Object-Oriented Programming (OOP) and Event-Driven Programming (EDP) concepts in Java. The project requires the application of Java Swing for GUI development, event handling, file handling, and OOP principles such as inheritance, polymorphism, encapsulation, and abstraction.
 
+## Project Foundation & User Preferences (Confirmed)
+
+- **User Roles:** Admin and Voter only
+- **Data Storage:** CSV files for persistence
+- **Authentication:** Passwords are hashed
+- **GUI Theme:** Modern JavaFX look with CSS styling
+- **Language:** English only
+- **Additional Features/Constraints:** None beyond the plan
+
 ## Objectives
 - Apply OOP concepts: encapsulation, inheritance, polymorphism, and abstraction.
 - Implement event-driven programming using event listeners (ActionListener, MouseListener, KeyListener, etc.).
