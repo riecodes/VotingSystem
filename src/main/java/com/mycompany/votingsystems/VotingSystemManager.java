@@ -1,5 +1,6 @@
 package com.mycompany.votingsystems;
 
+import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -8,6 +9,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,10 +34,11 @@ public class VotingSystemManager {
     private final List<AuditLog> auditLogs;
     private User currentUser;
 
-    private static final String USERS_FILE = "data/users.csv";
-    private static final String CANDIDATES_FILE = "data/candidates.csv";
-    private static final String VOTES_FILE = "data/votes.csv";
-    private static final String AUDIT_LOG_FILE = "data/audit_log.csv";
+    private static final String DATA_DIR = System.getProperty("user.dir") + "/data";
+    private static final String USERS_FILE = DATA_DIR + "/users.csv";
+    private static final String CANDIDATES_FILE = DATA_DIR + "/candidates.csv";
+    private static final String VOTES_FILE = DATA_DIR + "/votes.csv";
+    private static final String AUDIT_LOG_FILE = DATA_DIR + "/audit_log.csv";
 
     private VotingSystemManager() {
         users = new HashMap<>();
@@ -65,13 +68,16 @@ public class VotingSystemManager {
     }
 
     private void createDataDirectory() throws IOException {
-        Files.createDirectories(Paths.get("data"));
+        Files.createDirectories(Paths.get(DATA_DIR));
+        System.out.println("Data directory created at: " + DATA_DIR);
     }
 
     private void loadUsers() throws IOException {
+        System.out.println("Loading users from: " + USERS_FILE);
         if (!Files.exists(Paths.get(USERS_FILE))) {
+            System.out.println("Users file does not exist, creating default admin");
             // Create default admin user if no users exist
-            Admin admin = new Admin("admin", "admin123", "ADMIN001");
+            Admin admin = new Admin("admin", "admin", "ADMIN001");
             users.put(admin.getUsername(), admin);
             saveUsers();
             return;
@@ -81,15 +87,21 @@ public class VotingSystemManager {
              CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT)) {
             for (CSVRecord record : csvParser) {
                 String username = record.get(0);
-                String password = record.get(1);
-                String role = record.get(2);
-                String id = record.get(3);
+                String role = record.get(1);
+                String id = record.get(2);
+                String passwordHash = record.get(3);
+                System.out.println("Loading user: " + username + ", role: " + role + ", id: " + id);
 
                 User user;
                 if ("ADMIN".equals(role)) {
-                    user = new Admin(username, password, id);
+                    // For admin, always use the default password
+                    user = new Admin("admin", "admin", "ADMIN001");
                 } else {
-                    user = new Voter(username, password, id);
+                    // For voters, use the stored password hash and location info
+                    String district = record.size() > 4 ? record.get(4) : "";
+                    String province = record.size() > 5 ? record.get(5) : "";
+                    String city = record.size() > 6 ? record.get(6) : "";
+                    user = new Voter(username, passwordHash, id, district, province, city, true);
                 }
                 users.put(username, user);
             }
@@ -107,9 +119,16 @@ public class VotingSystemManager {
                 String candidateId = record.get(0);
                 String name = record.get(1);
                 String party = record.get(2);
-                int voteCount = Integer.parseInt(record.get(3));
+                String position = record.get(3);
+                String district = record.size() > 4 ? record.get(4) : null;
+                int voteCount = Integer.parseInt(record.get(record.size() - 1));
 
-                Candidate candidate = new Candidate(candidateId, name, party);
+                Candidate candidate;
+                if (district != null) {
+                    candidate = new Candidate(candidateId, name, party, position, district);
+                } else {
+                    candidate = new Candidate(candidateId, name, party, position);
+                }
                 candidate.setVoteCount(voteCount);
                 candidates.put(candidateId, candidate);
             }
@@ -148,13 +167,24 @@ public class VotingSystemManager {
     }
 
     private void saveUsers() throws IOException {
+        System.out.println("Saving users to: " + USERS_FILE);
         try (Writer writer = new FileWriter(USERS_FILE);
              CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT)) {
             for (User user : users.values()) {
                 if (user instanceof Admin admin) {
-                    csvPrinter.printRecord(user.getUsername(), "admin123", user.getRole(), admin.getAdminId());
+                    csvPrinter.printRecord(user.getUsername(), user.getRole(), admin.getAdminId(), user.getPasswordHash());
+                    System.out.println("Saved admin: " + user.getUsername());
                 } else if (user instanceof Voter voter) {
-                    csvPrinter.printRecord(user.getUsername(), "password", user.getRole(), voter.getVoterId());
+                    csvPrinter.printRecord(
+                        user.getUsername(),
+                        user.getRole(),
+                        voter.getVoterId(),
+                        user.getPasswordHash(),
+                        voter.getDistrict(),
+                        voter.getProvince(),
+                        voter.getCity()
+                    );
+                    System.out.println("Saved voter: " + user.getUsername());
                 }
             }
         }
@@ -164,8 +194,14 @@ public class VotingSystemManager {
         try (Writer writer = new FileWriter(CANDIDATES_FILE);
              CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT)) {
             for (Candidate candidate : candidates.values()) {
-                csvPrinter.printRecord(candidate.getCandidateId(), candidate.getName(),
-                        candidate.getParty(), candidate.getVoteCount());
+                csvPrinter.printRecord(
+                    candidate.getCandidateId(),
+                    candidate.getName(),
+                    candidate.getParty(),
+                    candidate.getPosition(),
+                    candidate.getDistrict(),
+                    candidate.getVoteCount()
+                );
             }
         }
     }
@@ -189,12 +225,27 @@ public class VotingSystemManager {
     }
 
     public boolean login(String username, String password, String role) {
+        System.out.println("Attempting login for: " + username + " with role: " + role);
         User user = users.get(username);
-        if (user != null && user.authenticate(password) && user.getRole().equals(role)) {
-            currentUser = user;
-            logAction("LOGIN", username, "User logged in successfully");
-            return true;
+        if (user != null) {
+            System.out.println("User found, checking password and role");
+            // For admin, always check against "admin" password
+            if ("ADMIN".equals(role)) {
+                if (username.equals("admin") && password.equals("admin")) {
+                    currentUser = user;
+                    logAction("LOGIN", username, "Admin logged in successfully");
+                    return true;
+                }
+            } else {
+                // For voters, check the stored password hash
+                if (user.authenticate(password) && user.getRole().equalsIgnoreCase(role)) {
+                    currentUser = user;
+                    logAction("LOGIN", username, "Voter logged in successfully");
+                    return true;
+                }
+            }
         }
+        System.out.println("Login failed for: " + username);
         logAction("LOGIN_FAILED", username, "Failed login attempt");
         return false;
     }
@@ -206,16 +257,24 @@ public class VotingSystemManager {
         }
     }
 
-    public boolean registerVoter(String username, String password, String voterId) {
+    private String generateVoterId() {
+        int nextNumber = (int) users.values().stream()
+                .filter(user -> user instanceof Voter)
+                .count() + 1;
+        return String.format("VOTER%03d", nextNumber);
+    }
+
+    public boolean registerVoter(String username, String password, String province, String city) {
         if (users.containsKey(username)) {
             return false;
         }
 
-        Voter voter = new Voter(username, password, voterId);
+        String voterId = generateVoterId();
+        Voter voter = new Voter(username, password, voterId, province, city);
         users.put(username, voter);
         try {
             saveUsers();
-            logAction("REGISTER", username, "New voter registered");
+            logAction("REGISTER", username, "New voter registered with ID: " + voterId);
             return true;
         } catch (IOException e) {
             logError("Error saving user data", e);
@@ -223,16 +282,61 @@ public class VotingSystemManager {
         }
     }
 
-    public boolean addCandidate(String candidateId, String name, String party) {
+    private String generateCandidateId() {
+        int nextNumber = candidates.size() + 1;
+        return String.format("CAND%03d", nextNumber);
+    }
+
+    public boolean addCandidate(String name, String party, String position, String province, String city) {
+        String candidateId = generateCandidateId();
         if (candidates.containsKey(candidateId)) {
             return false;
         }
 
-        Candidate candidate = new Candidate(candidateId, name, party);
+        Candidate candidate = new Candidate(candidateId, name, party, position, province, city);
         candidates.put(candidateId, candidate);
         try {
             saveCandidates();
             logAction("ADD_CANDIDATE", currentUser.getUsername(), "Added candidate: " + name);
+            return true;
+        } catch (IOException e) {
+            logError("Error saving candidate data", e);
+            return false;
+        }
+    }
+
+    public boolean updateCandidate(String candidateId, String name, String party, String position, String province, String city) {
+        Candidate candidate = candidates.get(candidateId);
+        if (candidate == null) {
+            return false;
+        }
+
+        candidate.setName(name);
+        candidate.setParty(party);
+        candidate.setPosition(position);
+        candidate.setProvince(province);
+        candidate.setCity(city);
+        try {
+            saveCandidates();
+            logAction("UPDATE_CANDIDATE", currentUser.getUsername(), 
+                    "Updated candidate: " + name + " (ID: " + candidateId + ")");
+            return true;
+        } catch (IOException e) {
+            logError("Error saving candidate data", e);
+            return false;
+        }
+    }
+
+    public boolean deleteCandidate(String candidateId) {
+        Candidate candidate = candidates.remove(candidateId);
+        if (candidate == null) {
+            return false;
+        }
+
+        try {
+            saveCandidates();
+            logAction("DELETE_CANDIDATE", currentUser.getUsername(), 
+                    "Deleted candidate: " + candidate.getName() + " (ID: " + candidateId + ")");
             return true;
         } catch (IOException e) {
             logError("Error saving candidate data", e);
@@ -254,6 +358,15 @@ public class VotingSystemManager {
             return false;
         }
 
+        // Check if voter is eligible to vote for this candidate
+        if (!voter.canVoteFor(candidate)) {
+            logAction("VOTE_REJECTED", currentUser.getUsername(), 
+                "Attempted to vote for ineligible candidate: " + candidate.getName() + 
+                " (Position: " + candidate.getPosition() + 
+                ", District: " + candidate.getDistrict() + ")");
+            return false;
+        }
+
         Vote vote = new Vote(voter.getVoterId(), candidateId);
         votes.add(vote);
         candidate.incrementVoteCount();
@@ -263,7 +376,10 @@ public class VotingSystemManager {
             saveVotes();
             saveCandidates();
             saveUsers();
-            logAction("VOTE", currentUser.getUsername(), "Voted for candidate: " + candidate.getName());
+            logAction("VOTE", currentUser.getUsername(), 
+                "Voted for candidate: " + candidate.getName() + 
+                " (Position: " + candidate.getPosition() + 
+                ", District: " + candidate.getDistrict() + ")");
             return true;
         } catch (IOException e) {
             logError("Error saving vote data", e);

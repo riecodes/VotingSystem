@@ -8,6 +8,11 @@ public class Admin extends User {
         this.adminId = adminId;
     }
 
+    public Admin(String username, String passwordHash, String adminId, boolean isPreHashed) {
+        super(username, passwordHash, "ADMIN", isPreHashed);
+        this.adminId = adminId;
+    }
+
     public String getAdminId() {
         return adminId;
     }

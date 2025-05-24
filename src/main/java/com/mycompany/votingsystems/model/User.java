@@ -15,6 +15,12 @@ public abstract class User {
         this.role = role;
     }
 
+    public User(String username, String passwordHash, String role, boolean isPreHashed) {
+        this.username = username;
+        this.passwordHash = isPreHashed ? passwordHash : hashPassword(passwordHash);
+        this.role = role;
+    }
+
     private String hashPassword(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -25,14 +31,26 @@ public abstract class User {
                 if (hex.length() == 1) hexString.append('0');
                 hexString.append(hex);
             }
-            return hexString.toString();
+            String hashedPassword = hexString.toString();
+            System.out.println("Hashed password for " + username + ": " + hashedPassword);
+            return hashedPassword;
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("Error hashing password", e);
         }
     }
 
     public boolean authenticate(String password) {
-        return passwordHash.equals(hashPassword(password));
+        String inputHash = hashPassword(password);
+        boolean matches = passwordHash.equals(inputHash);
+        System.out.println("Authentication for " + username + ":");
+        System.out.println("  Stored hash: " + passwordHash);
+        System.out.println("  Input hash:  " + inputHash);
+        System.out.println("  Matches:     " + matches);
+        return matches;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
     }
 
     // Getters and setters

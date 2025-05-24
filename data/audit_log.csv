@@ -21,3 +21,78 @@ LOGOUT,admin,User logged out
 LOGIN,admin,User logged in successfully
 LOGOUT,admin,User logged out
 LOGIN,admin,User logged in successfully
+LOGIN_FAILED,1,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,1,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN,admin,User logged in successfully
+LOGIN,admin,User logged in successfully
+ADD_CANDIDATE,admin,Added candidate: 1
+LOGIN,admin,User logged in successfully
+UPDATE_CANDIDATE,admin,Updated candidate: irish (ID: CAND001)
+LOGOUT,admin,User logged out
+REGISTER,1,New voter registered
+LOGIN,1,User logged in successfully
+VOTE,1,Voted for candidate: irish
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN,admin,User logged in successfully
+ADD_CANDIDATE,admin,Added candidate: hoo
+UPDATE_CANDIDATE,admin,Updated candidate: 9879 (ID: CAND002)
+DELETE_CANDIDATE,admin,Deleted candidate: 9879 (ID: CAND002)
+LOGOUT,admin,User logged out
+REGISTER,2,New voter registered with ID: VOTER002
+LOGIN_FAILED,2,Failed login attempt
+LOGIN,2,User logged in successfully
+VOTE,2,Voted for candidate: irish
+LOGOUT,2,User logged out
+LOGIN,admin,User logged in successfully
+LOGIN_FAILED,1,Failed login attempt
+LOGIN_FAILED,2,Failed login attempt
+LOGIN,admin,User logged in successfully
+LOGIN_FAILED,a,Failed login attempt
+LOGIN_FAILED,1,Failed login attempt
+REGISTER,1,New voter registered with ID: VOTER001
+LOGIN,1,User logged in successfully
+LOGIN_FAILED,1,Failed login attempt
+LOGIN_FAILED,1,Failed login attempt
+LOGIN_FAILED,1,Failed login attempt
+LOGIN_FAILED,1,Failed login attempt
+LOGIN_FAILED,1,Failed login attempt
+LOGIN_FAILED,1,Failed login attempt
+LOGIN_FAILED,1,Failed login attempt
+LOGIN_FAILED,user,Failed login attempt
+REGISTER,user,New voter registered with ID: VOTER002
+LOGIN_FAILED,user,Failed login attempt
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN,admin,Voter logged in successfully
+LOGOUT,admin,User logged out
+REGISTER,1,New voter registered with ID: VOTER001
+LOGIN,1,Voter logged in successfully
+LOGIN_FAILED,admin,Failed login attempt
+LOGIN,admin,Voter logged in successfully
+LOGOUT,admin,User logged out
+LOGIN_FAILED,user,Failed login attempt
+LOGIN,1,Voter logged in successfully
+LOGOUT,1,User logged out
+LOGIN_FAILED,user,Failed login attempt
+LOGIN,1,Voter logged in successfully
+LOGOUT,1,User logged out
+LOGIN,admin,Voter logged in successfully
