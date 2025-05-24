@@ -1,6 +1,5 @@
 package com.mycompany.votingsystems;
 
-import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -9,7 +8,6 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,10 +96,8 @@ public class VotingSystemManager {
                     user = new Admin("admin", "admin", "ADMIN001");
                 } else {
                     // For voters, use the stored password hash and location info
-                    String district = record.size() > 4 ? record.get(4) : "";
-                    String province = record.size() > 5 ? record.get(5) : "";
-                    String city = record.size() > 6 ? record.get(6) : "";
-                    user = new Voter(username, passwordHash, id, district, province, city, true);
+                    String place = record.size() > 4 ? record.get(4) : "";
+                    user = new Voter(username, passwordHash, id, place, true);
                 }
                 users.put(username, user);
             }
@@ -120,15 +116,10 @@ public class VotingSystemManager {
                 String name = record.get(1);
                 String party = record.get(2);
                 String position = record.get(3);
-                String district = record.size() > 4 ? record.get(4) : null;
+                String place = record.size() > 4 ? record.get(4) : null;
                 int voteCount = Integer.parseInt(record.get(record.size() - 1));
 
-                Candidate candidate;
-                if (district != null) {
-                    candidate = new Candidate(candidateId, name, party, position, district);
-                } else {
-                    candidate = new Candidate(candidateId, name, party, position);
-                }
+                Candidate candidate = new Candidate(candidateId, name, party, position, place);
                 candidate.setVoteCount(voteCount);
                 candidates.put(candidateId, candidate);
             }
@@ -180,9 +171,7 @@ public class VotingSystemManager {
                         user.getRole(),
                         voter.getVoterId(),
                         user.getPasswordHash(),
-                        voter.getDistrict(),
-                        voter.getProvince(),
-                        voter.getCity()
+                        voter.getPlace()
                     );
                     System.out.println("Saved voter: " + user.getUsername());
                 }
@@ -199,7 +188,7 @@ public class VotingSystemManager {
                     candidate.getName(),
                     candidate.getParty(),
                     candidate.getPosition(),
-                    candidate.getDistrict(),
+                    candidate.getPlace(),
                     candidate.getVoteCount()
                 );
             }
@@ -264,13 +253,13 @@ public class VotingSystemManager {
         return String.format("VOTER%03d", nextNumber);
     }
 
-    public boolean registerVoter(String username, String password, String province, String city) {
+    public boolean registerVoter(String username, String password, String place) {
         if (users.containsKey(username)) {
             return false;
         }
 
         String voterId = generateVoterId();
-        Voter voter = new Voter(username, password, voterId, province, city);
+        Voter voter = new Voter(username, password, voterId, place);
         users.put(username, voter);
         try {
             saveUsers();
@@ -287,13 +276,26 @@ public class VotingSystemManager {
         return String.format("CAND%03d", nextNumber);
     }
 
-    public boolean addCandidate(String name, String party, String position, String province, String city) {
+    public boolean addCandidate(String name, String party, String position, String place) {
+        // Validate position and place requirements
+        if (isNationalPosition(position) && place != null && !place.isEmpty()) {
+            logAction("ADD_CANDIDATE_REJECTED", currentUser.getUsername(), 
+                "National position cannot have a place: " + position);
+            return false;
+        }
+
+        if (isLocalPosition(position) && (place == null || place.isEmpty())) {
+            logAction("ADD_CANDIDATE_REJECTED", currentUser.getUsername(), 
+                "Local position must have a place: " + position);
+            return false;
+        }
+
         String candidateId = generateCandidateId();
         if (candidates.containsKey(candidateId)) {
             return false;
         }
 
-        Candidate candidate = new Candidate(candidateId, name, party, position, province, city);
+        Candidate candidate = new Candidate(candidateId, name, party, position, place);
         candidates.put(candidateId, candidate);
         try {
             saveCandidates();
@@ -305,7 +307,20 @@ public class VotingSystemManager {
         }
     }
 
-    public boolean updateCandidate(String candidateId, String name, String party, String position, String province, String city) {
+    public boolean updateCandidate(String candidateId, String name, String party, String position, String place) {
+        // Validate position and place requirements
+        if (isNationalPosition(position) && place != null && !place.isEmpty()) {
+            logAction("UPDATE_CANDIDATE_REJECTED", currentUser.getUsername(), 
+                "National position cannot have a place: " + position);
+            return false;
+        }
+
+        if (isLocalPosition(position) && (place == null || place.isEmpty())) {
+            logAction("UPDATE_CANDIDATE_REJECTED", currentUser.getUsername(), 
+                "Local position must have a place: " + position);
+            return false;
+        }
+
         Candidate candidate = candidates.get(candidateId);
         if (candidate == null) {
             return false;
@@ -314,8 +329,7 @@ public class VotingSystemManager {
         candidate.setName(name);
         candidate.setParty(party);
         candidate.setPosition(position);
-        candidate.setProvince(province);
-        candidate.setCity(city);
+        candidate.setPlace(place);
         try {
             saveCandidates();
             logAction("UPDATE_CANDIDATE", currentUser.getUsername(), 
@@ -325,6 +339,19 @@ public class VotingSystemManager {
             logError("Error saving candidate data", e);
             return false;
         }
+    }
+
+    private boolean isNationalPosition(String position) {
+        return position.equals("President") || 
+               position.equals("Vice President") || 
+               position.equals("Senator");
+    }
+
+    private boolean isLocalPosition(String position) {
+        return position.equals("Governor") || 
+               position.equals("Vice Governor") || 
+               position.equals("Mayor") || 
+               position.equals("Vice Mayor");
     }
 
     public boolean deleteCandidate(String candidateId) {
@@ -349,10 +376,6 @@ public class VotingSystemManager {
             return false;
         }
 
-        if (voter.hasVoted()) {
-            return false;
-        }
-
         Candidate candidate = candidates.get(candidateId);
         if (candidate == null) {
             return false;
@@ -363,28 +386,88 @@ public class VotingSystemManager {
             logAction("VOTE_REJECTED", currentUser.getUsername(), 
                 "Attempted to vote for ineligible candidate: " + candidate.getName() + 
                 " (Position: " + candidate.getPosition() + 
-                ", District: " + candidate.getDistrict() + ")");
+                ", Place: " + candidate.getPlace() + ")");
             return false;
+        }
+
+        // Check if voter has already voted for this position
+        String position = candidate.getPosition();
+        int votesForPosition = 0;
+        for (Vote vote : votes) {
+            if (vote.getVoterId().equals(voter.getVoterId())) {
+                Candidate votedCandidate = candidates.get(vote.getCandidateId());
+                if (votedCandidate != null && votedCandidate.getPosition().equals(position)) {
+                    votesForPosition++;
+                    // For Senator position, check if this specific candidate was already voted for
+                    if (position.equals("Senator") && vote.getCandidateId().equals(candidateId)) {
+                        logAction("VOTE_REJECTED", currentUser.getUsername(), 
+                            "Already voted for Senator: " + candidate.getName());
+                        return false;
+                    }
+                }
+            }
+        }
+
+        // Check position-specific voting limits
+        if (position.equals("Senator")) {
+            if (votesForPosition >= 12) {
+                logAction("VOTE_REJECTED", currentUser.getUsername(), 
+                    "Maximum votes (12) reached for Senator position");
+                return false;
+            }
+        } else {
+            if (votesForPosition >= 1) {
+                logAction("VOTE_REJECTED", currentUser.getUsername(), 
+                    "Already voted for position: " + position);
+                return false;
+            }
         }
 
         Vote vote = new Vote(voter.getVoterId(), candidateId);
         votes.add(vote);
         candidate.incrementVoteCount();
-        voter.setHasVoted(true);
 
         try {
             saveVotes();
             saveCandidates();
-            saveUsers();
             logAction("VOTE", currentUser.getUsername(), 
                 "Voted for candidate: " + candidate.getName() + 
                 " (Position: " + candidate.getPosition() + 
-                ", District: " + candidate.getDistrict() + ")");
+                ", Place: " + candidate.getPlace() + ")");
             return true;
         } catch (IOException e) {
             logError("Error saving vote data", e);
             return false;
         }
+    }
+
+    public boolean hasVotedForPosition(String position) {
+        if (!(currentUser instanceof Voter voter)) {
+            return false;
+        }
+
+        for (Vote vote : votes) {
+            if (vote.getVoterId().equals(voter.getVoterId())) {
+                Candidate candidate = candidates.get(vote.getCandidateId());
+                if (candidate != null && candidate.getPosition().equals(position)) {
+                    if (position.equals("Senator")) {
+                        // For Senator, check if they've reached the limit of 12 votes
+                        int senatorVotes = 0;
+                        for (Vote v : votes) {
+                            if (v.getVoterId().equals(voter.getVoterId())) {
+                                Candidate c = candidates.get(v.getCandidateId());
+                                if (c != null && c.getPosition().equals("Senator")) {
+                                    senatorVotes++;
+                                }
+                            }
+                        }
+                        return senatorVotes >= 12;
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public List<Candidate> getCandidates() {

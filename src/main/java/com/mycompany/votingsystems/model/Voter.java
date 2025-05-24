@@ -6,8 +6,7 @@ import java.util.List;
 public class Voter extends User {
     private String voterId;
     private boolean hasVoted;
-    private String province;  // Voter's registered province
-    private String city;      // Voter's registered city
+    private String place;  // Voter's registered place
     private boolean isPreHashed;
 
     // Position-based validation rules
@@ -15,29 +14,23 @@ public class Voter extends User {
         "President", "Vice President", "Senator"
     );
 
-    private static final List<String> PROVINCIAL_POSITIONS = Arrays.asList(
-        "Governor", "Vice Governor", "Provincial Board Member"
+    private static final List<String> LOCAL_POSITIONS = Arrays.asList(
+        "Governor", "Vice Governor", "Mayor", "Vice Mayor"
     );
 
-    private static final List<String> CITY_POSITIONS = Arrays.asList(
-        "Mayor", "Vice Mayor", "Councilor"
-    );
-
-    public Voter(String username, String password, String voterId, String province, String city) {
+    public Voter(String username, String password, String voterId, String place) {
         super(username, password, "VOTER");
         this.voterId = voterId;
         this.hasVoted = false;
-        this.province = province;
-        this.city = city;
+        this.place = place;
         this.isPreHashed = false;
     }
 
-    public Voter(String username, String passwordHash, String voterId, String province, String city, boolean isPreHashed) {
+    public Voter(String username, String passwordHash, String voterId, String place, boolean isPreHashed) {
         super(username, passwordHash, "VOTER", isPreHashed);
         this.voterId = voterId;
         this.hasVoted = false;
-        this.province = province;
-        this.city = city;
+        this.place = place;
         this.isPreHashed = isPreHashed;
     }
 
@@ -57,20 +50,12 @@ public class Voter extends User {
         this.hasVoted = hasVoted;
     }
 
-    public String getProvince() {
-        return province;
+    public String getPlace() {
+        return place;
     }
 
-    public void setProvince(String province) {
-        this.province = province;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
+    public void setPlace(String place) {
+        this.place = place;
     }
 
     /**
@@ -80,22 +65,16 @@ public class Voter extends User {
      */
     public boolean canVoteFor(Candidate candidate) {
         String position = candidate.getPosition();
-        String candidateProvince = candidate.getProvince();
-        String candidateCity = candidate.getCity();
+        String candidatePlace = candidate.getPlace();
 
         // National positions can be voted by anyone
         if (NATIONAL_POSITIONS.contains(position)) {
             return true;
         }
 
-        // Provincial positions require province match
-        if (PROVINCIAL_POSITIONS.contains(position)) {
-            return province.equalsIgnoreCase(candidateProvince);
-        }
-
-        // City positions require city match
-        if (CITY_POSITIONS.contains(position)) {
-            return city.equalsIgnoreCase(candidateCity);
+        // Local positions require place match
+        if (LOCAL_POSITIONS.contains(position)) {
+            return place.equalsIgnoreCase(candidatePlace);
         }
 
         return false;
@@ -106,8 +85,7 @@ public class Voter extends User {
         return "Voter{" +
                 "username='" + getUsername() + '\'' +
                 ", voterId='" + voterId + '\'' +
-                ", province='" + province + '\'' +
-                ", city='" + city + '\'' +
+                ", place='" + place + '\'' +
                 '}';
     }
 } 

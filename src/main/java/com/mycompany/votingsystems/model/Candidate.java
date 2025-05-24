@@ -6,20 +6,18 @@ public class Candidate {
     private String candidateId;
     private String name;
     private String party;
-    private String position;  // e.g., "President", "Vice President", "Senator", "Representative"
-    private String province;
-    private String city;
+    private String position;  // e.g., "President", "Vice President", "Senator", "Governor", "Mayor"
+    private String place;     // Location for local positions, null for national positions
     private int voteCount;
     private boolean isIncumbent;  // Whether the candidate is currently holding the position
     private int termCount;    // Number of terms served (for positions with term limits)
 
-    public Candidate(String candidateId, String name, String party, String position, String province, String city) {
+    public Candidate(String candidateId, String name, String party, String position, String place) {
         this.candidateId = candidateId;
         this.name = name;
         this.party = party;
         this.position = position;
-        this.province = province;
-        this.city = city;
+        this.place = place;
         this.voteCount = 0;
         this.isIncumbent = false;
         this.termCount = 0;
@@ -81,20 +79,12 @@ public class Candidate {
         this.position = position;
     }
 
-    public String getProvince() {
-        return province;
+    public String getPlace() {
+        return place;
     }
 
-    public void setProvince(String province) {
-        this.province = province;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
+    public void setPlace(String place) {
+        this.place = place;
     }
 
     public int getVoteCount() {
@@ -141,8 +131,7 @@ public class Candidate {
                 ", name='" + name + '\'' +
                 ", party='" + party + '\'' +
                 ", position='" + position + '\'' +
-                ", province='" + province + '\'' +
-                ", city='" + city + '\'' +
+                ", place='" + place + '\'' +
                 ", votes=" + voteCount +
                 ", isIncumbent=" + isIncumbent +
                 ", termCount=" + termCount +

@@ -15,23 +15,13 @@ public class LoginScreen extends JFrame {
     private final JComboBox<String> roleComboBox;
     private final VotingSystemManager manager;
 
-    // Philippine provinces
-    private static final String[] PROVINCES = {
+    // Remove PROVINCES and CITIES arrays and replace with PLACES
+    private static final String[] PLACES = {
         "Metro Manila",
-        "Cebu",
-        "Davao",
-        "Quezon",
-        "Cavite",
-        "Rizal",
-        "Bulacan",
-        "Laguna",
-        "Pampanga",
-        "Batangas"
-    };
-
-    private static final String[] CITIES = {
-        "Manila",
+        "Cebu City",
+        "Davao City",
         "Quezon City",
+        "Manila",
         "Makati",
         "Taguig",
         "Pasig",
@@ -39,40 +29,21 @@ public class LoginScreen extends JFrame {
         "Pasay",
         "Muntinlupa",
         "Las Piñas",
-        "Parañaque"
+        "Parañaque",
+        "Baguio City",
+        "Cagayan de Oro",
+        "Iloilo City",
+        "Zamboanga City",
+        "Angeles City",
+        "Bacoor",
+        "Imus",
+        "Puerto Princesa",
+        "Legazpi",
+        "Tacloban",
+        "General Santos",
+        "Laoag",
+        "Vigan"
     };
-
-    // Map of cities by province
-    private static final Map<String, String[]> CITIES_BY_PROVINCE = new HashMap<>();
-    
-    static {
-        // Metro Manila cities
-        CITIES_BY_PROVINCE.put("Metro Manila", new String[]{
-            "Manila",
-            "Quezon City",
-            "Makati",
-            "Taguig",
-            "Pasig",
-            "Pasay",
-            "Mandaluyong",
-            "San Juan"
-        });
-        
-        // Other major cities
-        CITIES_BY_PROVINCE.put("Cebu", new String[]{"Cebu City"});
-        CITIES_BY_PROVINCE.put("Davao", new String[]{"Davao City"});
-        CITIES_BY_PROVINCE.put("Iloilo", new String[]{"Iloilo City"});
-        CITIES_BY_PROVINCE.put("Zamboanga", new String[]{"Zamboanga City"});
-        CITIES_BY_PROVINCE.put("Cagayan", new String[]{"Cagayan de Oro"});
-        CITIES_BY_PROVINCE.put("Pampanga", new String[]{"Angeles City"});
-        CITIES_BY_PROVINCE.put("Cavite", new String[]{"Bacoor", "Imus"});
-        CITIES_BY_PROVINCE.put("Palawan", new String[]{"Puerto Princesa"});
-        CITIES_BY_PROVINCE.put("Albay", new String[]{"Legazpi"});
-        CITIES_BY_PROVINCE.put("Leyte", new String[]{"Tacloban"});
-        CITIES_BY_PROVINCE.put("South Cotabato", new String[]{"General Santos"});
-        CITIES_BY_PROVINCE.put("Ilocos Norte", new String[]{"Laoag"});
-        CITIES_BY_PROVINCE.put("Ilocos Sur", new String[]{"Vigan"});
-    }
 
     public LoginScreen() {
         manager = VotingSystemManager.getInstance();
@@ -173,20 +144,17 @@ public class LoginScreen extends JFrame {
     }
 
     private void showRegistrationDialog() {
-        JPanel panel = new JPanel(new GridLayout(5, 2));
+        JPanel panel = new JPanel(new GridLayout(4, 2));
         JTextField usernameField = new JTextField();
         JPasswordField passwordField = new JPasswordField();
-        JComboBox<String> provinceCombo = new JComboBox<>(PROVINCES);
-        JComboBox<String> cityCombo = new JComboBox<>(CITIES);
+        JComboBox<String> placeCombo = new JComboBox<>(PLACES);
 
         panel.add(new JLabel("Username:"));
         panel.add(usernameField);
         panel.add(new JLabel("Password:"));
         panel.add(passwordField);
-        panel.add(new JLabel("Province:"));
-        panel.add(provinceCombo);
-        panel.add(new JLabel("City:"));
-        panel.add(cityCombo);
+        panel.add(new JLabel("Place:"));
+        panel.add(placeCombo);
 
         int result = JOptionPane.showConfirmDialog(this, panel, "Register New Voter",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
@@ -194,15 +162,14 @@ public class LoginScreen extends JFrame {
         if (result == JOptionPane.OK_OPTION) {
             String username = usernameField.getText();
             String password = new String(passwordField.getPassword());
-            String province = (String) provinceCombo.getSelectedItem();
-            String city = (String) cityCombo.getSelectedItem();
+            String place = (String) placeCombo.getSelectedItem();
 
             if (username.isEmpty() || password.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please fill in all fields");
                 return;
             }
 
-            if (manager.registerVoter(username, password, province, city)) {
+            if (manager.registerVoter(username, password, place)) {
                 JOptionPane.showMessageDialog(this, "Registration successful!");
             } else {
                 JOptionPane.showMessageDialog(this, "Registration failed. Username may already exist.");

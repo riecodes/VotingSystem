@@ -43,22 +43,12 @@ public class AdminDashboard extends JFrame {
         "Councilor"
     };
 
-    private static final String[] PROVINCES = {
+    private static final String[] PLACES = {
         "Metro Manila",
-        "Cebu",
-        "Davao",
-        "Quezon",
-        "Cavite",
-        "Rizal",
-        "Bulacan",
-        "Laguna",
-        "Pampanga",
-        "Batangas"
-    };
-
-    private static final String[] CITIES = {
-        "Manila",
+        "Cebu City",
+        "Davao City",
         "Quezon City",
+        "Manila",
         "Makati",
         "Taguig",
         "Pasig",
@@ -66,7 +56,20 @@ public class AdminDashboard extends JFrame {
         "Pasay",
         "Muntinlupa",
         "Las Piñas",
-        "Parañaque"
+        "Parañaque",
+        "Baguio City",
+        "Cagayan de Oro",
+        "Iloilo City",
+        "Zamboanga City",
+        "Angeles City",
+        "Bacoor",
+        "Imus",
+        "Puerto Princesa",
+        "Legazpi",
+        "Tacloban",
+        "General Santos",
+        "Laoag",
+        "Vigan"
     };
 
     public AdminDashboard() {
@@ -82,7 +85,7 @@ public class AdminDashboard extends JFrame {
         // Candidates tab
         JPanel candidatesPanel = new JPanel(new BorderLayout());
         candidatesModel = new DefaultTableModel(
-                new String[]{"ID", "Name", "Party", "Position", "Province", "City", "Votes"}, 0) {
+                new String[]{"ID", "Name", "Party", "Position", "Place", "Votes"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false; // Make table read-only
@@ -143,12 +146,33 @@ public class AdminDashboard extends JFrame {
     }
 
     private void showAddCandidateDialog() {
-        JPanel panel = new JPanel(new GridLayout(6, 2));
+        JPanel panel = new JPanel(new GridLayout(5, 2));
         JTextField nameField = new JTextField();
         JTextField partyField = new JTextField();
         JComboBox<String> positionCombo = new JComboBox<>(POSITIONS);
-        JComboBox<String> provinceCombo = new JComboBox<>(PROVINCES);
-        JComboBox<String> cityCombo = new JComboBox<>(CITIES);
+        JComboBox<String> placeCombo = new JComboBox<>(PLACES);
+
+        // Initialize place field based on first position
+        String initialPosition = (String) positionCombo.getSelectedItem();
+        boolean initialIsNationalPosition = initialPosition.equals("President") || 
+                                          initialPosition.equals("Vice President") || 
+                                          initialPosition.equals("Senator");
+        placeCombo.setEnabled(!initialIsNationalPosition);
+        if (initialIsNationalPosition) {
+            placeCombo.setSelectedItem(null);
+        }
+
+        // Add listener to update place field visibility based on position
+        positionCombo.addActionListener(e -> {
+            String selectedPosition = (String) positionCombo.getSelectedItem();
+            boolean isNationalPosition = selectedPosition.equals("President") || 
+                                       selectedPosition.equals("Vice President") || 
+                                       selectedPosition.equals("Senator");
+            placeCombo.setEnabled(!isNationalPosition);
+            if (isNationalPosition) {
+                placeCombo.setSelectedItem(null);
+            }
+        });
 
         panel.add(new JLabel("Name:"));
         panel.add(nameField);
@@ -156,10 +180,8 @@ public class AdminDashboard extends JFrame {
         panel.add(partyField);
         panel.add(new JLabel("Position:"));
         panel.add(positionCombo);
-        panel.add(new JLabel("Province:"));
-        panel.add(provinceCombo);
-        panel.add(new JLabel("City:"));
-        panel.add(cityCombo);
+        panel.add(new JLabel("Place:"));
+        panel.add(placeCombo);
 
         int result = JOptionPane.showConfirmDialog(this, panel, "Add New Candidate",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
@@ -168,19 +190,18 @@ public class AdminDashboard extends JFrame {
             String name = nameField.getText();
             String party = partyField.getText();
             String position = (String) positionCombo.getSelectedItem();
-            String province = (String) provinceCombo.getSelectedItem();
-            String city = (String) cityCombo.getSelectedItem();
+            String place = (String) placeCombo.getSelectedItem();
 
             if (name.isEmpty() || party.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Please fill in all fields");
                 return;
             }
 
-            if (manager.addCandidate(name, party, position, province, city)) {
+            if (manager.addCandidate(name, party, position, place)) {
                 JOptionPane.showMessageDialog(this, "Candidate added successfully!");
                 refreshCandidatesTable();
             } else {
-                JOptionPane.showMessageDialog(this, "Failed to add candidate.");
+                JOptionPane.showMessageDialog(this, "Failed to add candidate. Check if the position and place combination is valid.");
             }
         }
     }
@@ -199,24 +220,42 @@ public class AdminDashboard extends JFrame {
         String currentName = (String) candidatesModel.getValueAt(selectedRow, 1);
         String currentParty = (String) candidatesModel.getValueAt(selectedRow, 2);
         String currentPosition = (String) candidatesModel.getValueAt(selectedRow, 3);
-        String currentProvince = (String) candidatesModel.getValueAt(selectedRow, 4);
-        String currentCity = (String) candidatesModel.getValueAt(selectedRow, 5);
+        String currentPlace = (String) candidatesModel.getValueAt(selectedRow, 4);
 
         JDialog dialog = new JDialog(this, "Update Candidate", true);
         dialog.setSize(400, 300);
         dialog.setLocationRelativeTo(this);
 
-        JPanel panel = new JPanel(new GridLayout(6, 2, 5, 5));
+        JPanel panel = new JPanel(new GridLayout(5, 2, 5, 5));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JTextField nameField = new JTextField(currentName);
         JTextField partyField = new JTextField(currentParty);
         JComboBox<String> positionCombo = new JComboBox<>(POSITIONS);
         positionCombo.setSelectedItem(currentPosition);
-        JComboBox<String> provinceCombo = new JComboBox<>(PROVINCES);
-        provinceCombo.setSelectedItem(currentProvince);
-        JComboBox<String> cityCombo = new JComboBox<>(CITIES);
-        cityCombo.setSelectedItem(currentCity);
+        JComboBox<String> placeCombo = new JComboBox<>(PLACES);
+        placeCombo.setSelectedItem(currentPlace);
+
+        // Initialize place field based on current position
+        boolean initialIsNationalPosition = currentPosition.equals("President") || 
+                                          currentPosition.equals("Vice President") || 
+                                          currentPosition.equals("Senator");
+        placeCombo.setEnabled(!initialIsNationalPosition);
+        if (initialIsNationalPosition) {
+            placeCombo.setSelectedItem(null);
+        }
+
+        // Add listener to update place field visibility based on position
+        positionCombo.addActionListener(e -> {
+            String selectedPosition = (String) positionCombo.getSelectedItem();
+            boolean isNationalPosition = selectedPosition.equals("President") || 
+                                       selectedPosition.equals("Vice President") || 
+                                       selectedPosition.equals("Senator");
+            placeCombo.setEnabled(!isNationalPosition);
+            if (isNationalPosition) {
+                placeCombo.setSelectedItem(null);
+            }
+        });
 
         panel.add(new JLabel("Name:"));
         panel.add(nameField);
@@ -224,18 +263,15 @@ public class AdminDashboard extends JFrame {
         panel.add(partyField);
         panel.add(new JLabel("Position:"));
         panel.add(positionCombo);
-        panel.add(new JLabel("Province:"));
-        panel.add(provinceCombo);
-        panel.add(new JLabel("City:"));
-        panel.add(cityCombo);
+        panel.add(new JLabel("Place:"));
+        panel.add(placeCombo);
 
         JButton updateButton = new JButton("Update");
         updateButton.addActionListener(e -> {
             String newName = nameField.getText().trim();
             String newParty = partyField.getText().trim();
             String newPosition = (String) positionCombo.getSelectedItem();
-            String newProvince = (String) provinceCombo.getSelectedItem();
-            String newCity = (String) cityCombo.getSelectedItem();
+            String newPlace = (String) placeCombo.getSelectedItem();
 
             if (newName.isEmpty() || newParty.isEmpty()) {
                 JOptionPane.showMessageDialog(dialog,
@@ -245,12 +281,12 @@ public class AdminDashboard extends JFrame {
                 return;
             }
 
-            if (manager.updateCandidate(candidateId, newName, newParty, newPosition, newProvince, newCity)) {
+            if (manager.updateCandidate(candidateId, newName, newParty, newPosition, newPlace)) {
                 JOptionPane.showMessageDialog(this, "Candidate updated successfully!");
                 refreshCandidatesTable();
                 dialog.dispose();
             } else {
-                JOptionPane.showMessageDialog(this, "Failed to update candidate.");
+                JOptionPane.showMessageDialog(this, "Failed to update candidate. Check if the position and place combination is valid.");
             }
         });
 
@@ -299,8 +335,7 @@ public class AdminDashboard extends JFrame {
                     candidate.getName(),
                     candidate.getParty(),
                     candidate.getPosition(),
-                    candidate.getProvince(),
-                    candidate.getCity(),
+                    candidate.getPlace(),
                     candidate.getVoteCount()
             });
         }
