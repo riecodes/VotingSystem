@@ -1,1 +1,25 @@
 LOGIN,admin,Voter logged in successfully
+LOGIN,admin,Voter logged in successfully
+ADD_CANDIDATE,admin,Added candidate: a
+ADD_CANDIDATE,admin,Added candidate: b
+ADD_CANDIDATE,admin,Added candidate: c
+ADD_CANDIDATE,admin,Added candidate: a1
+ADD_CANDIDATE,admin,Added candidate: b2
+ADD_CANDIDATE,admin,Added candidate: c3
+ADD_CANDIDATE_REJECTED,admin,Local position must have a place: Mayor
+ADD_CANDIDATE,admin,Added candidate: a2t
+LOGOUT,admin,User logged out
+REGISTER,a,New voter registered with ID: VOTER001
+LOGIN,a,Voter logged in successfully
+VOTE,a,"Voted for candidate: b (Position: Vice President, Place: null)"
+LOGOUT,a,User logged out
+LOGIN,admin,Voter logged in successfully
+ADD_CANDIDATE,admin,Added candidate: 2t
+ADD_CANDIDATE,admin,Added candidate: 1356q3h
+LOGOUT,admin,User logged out
+LOGIN,a,Voter logged in successfully
+VOTE,a,"Voted for candidate: 2t (Position: Mayor, Place: Metro Manila)"
+VOTE,a,"Voted for candidate: c3 (Position: Senator, Place: null)"
+VOTE_REJECTED,a,Already voted for Senator: c3
+VOTE,a,"Voted for candidate: c (Position: Senator, Place: null)"
+VOTE,a,"Voted for candidate: a (Position: President, Place: null)"
